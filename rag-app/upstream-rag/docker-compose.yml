@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+
+  rag-app:
+    build: ./rag-app
+    container_name: rag-app
+    ports:
+      - "8000:8000"
+    environment:
+      # point at your host’s Ollama daemon
+      - OLLAMA_SERVER_URL=http://host.docker.internal:11434
+    extra_hosts:
+      # makes host.docker.internal resolve back to your host
+      - "host.docker.internal:172.17.0.1"
+    volumes:
+      - ./docker_best_practices.md:/docker_best_practices.md:ro
+      - ./rag-app/docs:/app/docs:ro
+      - ./resources:/resources:ro
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3001:8080"
+    depends_on:
+      - rag-app
+    environment:
+      # ────── Tell the UI to *not* hit real OpenAI ──────
+      - ENABLE_OLLAMA_API=false
+      - ENABLE_OPENAI_API=true
+      # point its “OpenAI” client at your RAG service’s OpenAI‑compatible endpoints
+      - OPENAI_API_BASE_URLS=http://rag-app:8000/v1
+      - OPENAI_API_KEYS=unused
+      - ENABLE_PERSISTENT_CONFIG=false
+      - WEBUI_STREAMING=false
+    volumes:
+      - openwebui_data:/app/backend/data
+
+volumes:
+  openwebui_data:
+
