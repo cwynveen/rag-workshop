@@ -29,6 +29,7 @@ SSH into your Ubuntu server, we will need to install the following
     ```
 
 3. Clone the repo with the source code needed for the workshop:
+
     ```shell
     git clone https://github.com/cwynveen/rag-workshop.git
     ```
