@@ -48,7 +48,11 @@ SSH into your Ubuntu server, we will need to install the following
 Open your browser at http://<EC2-PUBLIC-IP>:3001
 Login (these can be dummy creds. admin@gmail.com)
 Let's ask a question!
-- What is Iron Bank?
+
+    ```plaintext
+    What is Iron Bank?
+    ```
+    
 Run grype against the image we just built
 
     ```shell
