@@ -55,7 +55,7 @@ Run grype against the image we just built
     grype <rag-app-upstream-rag>
     ```
 
-Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image
+Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image.
 
     ```shell
     docker compose down
