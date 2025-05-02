@@ -38,7 +38,7 @@ SSH into your Ubuntu server, we will need to install the following
 ---
 
 ## Running through the workshop steps
-1. Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose
+1. Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose. Note this will take a few minutes to download and pull in all the AI things (they're BIG).
 
     ```shell
     cd rag-app/upstream-rag
@@ -46,8 +46,7 @@ SSH into your Ubuntu server, we will need to install the following
     ```
 
 2. Open your browser at http://EC2-PUBLIC-IP:3001
-Login (these can be dummy creds. admin@gmail.com)
-Let's ask a question!
+Login (these can be dummy creds. admin@gmail.com). Now, let's ask a question!
 
     ```plaintext
     What is Iron Bank?
