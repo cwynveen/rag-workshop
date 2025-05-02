@@ -25,7 +25,7 @@ SSH into your Ubuntu server, we will need to install the following
     ```shell
     export OLLAMA_HOST="0.0.0.0:11434"
     export OLLAMA_ORIGINS="*"
-    ollama serve &
+    ollama serve > ~/ollama.log 2>&1 &
     ollama pull gemma3:4b
     ```
 
