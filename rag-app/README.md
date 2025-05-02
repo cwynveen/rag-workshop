@@ -21,7 +21,7 @@ In each of these folders there are:
 SSH into your Ubuntu server, we will need to install the following 
 1. docker, docker-compose, ollama, grype, and syft
 2. You will need to run the following commads to get ollama running and pull in the gemma3:4b model that we use
- 
+
     ```shell
     export OLLAMA_HOST="0.0.0.0:11434"
     export OLLAMA_ORIGINS="*"
@@ -45,7 +45,7 @@ SSH into your Ubuntu server, we will need to install the following
     docker compose up -d
     ```
 
-Open your browser at http://EC2-PUBLIC-IP:3001
+2. Open your browser at http://EC2-PUBLIC-IP:3001
 Login (these can be dummy creds. admin@gmail.com)
 Let's ask a question!
 
@@ -53,13 +53,13 @@ Let's ask a question!
     What is Iron Bank?
     ```
     
-Run grype against the image we just built
+3. Run grype against the image we just built
 
     ```shell
     grype <rag-app-upstream-rag>
     ```
 
-Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image.
+4. Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image.
 
     ```shell
     docker compose down
