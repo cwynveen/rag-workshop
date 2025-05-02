@@ -45,7 +45,7 @@ SSH into your Ubuntu server, we will need to install the following
     docker compose up -d
     ```
 
-Open your browser at http://<EC2-PUBLIC-IP>:3001
+Open your browser at http://EC2-PUBLIC-IP:3001
 Login (these can be dummy creds. admin@gmail.com)
 Let's ask a question!
 
