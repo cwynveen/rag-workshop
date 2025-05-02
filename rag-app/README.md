@@ -18,45 +18,55 @@ In each of these folders there are:
 ---
 
 ## Setting up your Ubuntu server to run through the workshop
-You will need to install the following 
-- **`docker, docker-compose, ollama, grype, and syft`**
-- **`you will need to run the following commads to get ollama running and pull in the gemma3:4b model that we use`**
-export OLLAMA_HOST="0.0.0.0:11434"
-export OLLAMA_ORIGINS="*"
+SSH into your Ubuntu server, we will need to install the following 
+1. docker, docker-compose, ollama, grype, and syft
+2. You will need to run the following commads to get ollama running and pull in the gemma3:4b model that we use
+    ```shell
+    export OLLAMA_HOST="0.0.0.0:11434"
+    export OLLAMA_ORIGINS="*"
+    ollama serve &
+    ollama pull gemma3:4b
+    ```
 
-# Start the HTTP API
-ollama serve &
-
-# Wait a few seconds, then pull the model
-ollama pull gemma3:4b
-
-Clone the repo with the source code needed for the workshop:
-- git clone https://github.com/cwynveen/rag-workshop.git
+3. Clone the repo with the source code needed for the workshop:
+    ```shell
+    git clone https://github.com/cwynveen/rag-workshop.git
+    ```
 
 ---
 
 ## Running through the workshop steps
 Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose
-cd upstream-rag
-docker compose build --no-cache rag-app
-docker compose up -d
+    ```shell
+    docker compose build --no-cache rag-app
+    docker compose up -d
+    ```
 Open your browser at http://<EC2-PUBLIC-IP>:3001
+Login (these can be dummy creds. admin@gmail.com)
 Let's ask a question!
 - What is Iron Bank?
 Run grype against the image we just built
-- grype <rag-app-upstream-rag>
+    ```shell
+    grype <rag-app-upstream-rag>
+    ```
 
 Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image
-docker compose down
-cd ..
-cd cg-rag
-docker compose build --no-cache rag-app
-docker compose up -d
+    ```shell
+    docker compose down
+    cd ..
+    cd cg-rag
+    docker compose build --no-cache rag-app
+    docker compose up -d
+    ```
+
 Open your browser at http://<EC2-PUBLIC-IP>:3001
+Login (these can be dummy creds. admin@gmail.com)
 Let's ask a question!
 - What is Iron Bank?
 Run grype against the image we just built
-- grype <rag-app-upstream-rag>
+    ```shell
+    grype <cg-app-upstream-rag>
+    ```
 Much fewer CVE's from just a single line of code change in our Dockerfile FROM statement
 
 ---
