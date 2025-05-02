@@ -41,6 +41,7 @@ SSH into your Ubuntu server, we will need to install the following
 1. Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose
 
     ```shell
+    cd rag-app/upstream-rag
     docker compose up build -d
     ```
 
