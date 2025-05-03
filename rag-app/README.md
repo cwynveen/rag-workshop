@@ -21,14 +21,13 @@ In each of these folders there are:
 SSH into your Ubuntu server, we will need to install the following 
 1. docker, docker-compose, ollama, grype, and syft
 2. You will need to run the following commads to get ollama running and pull in the gemma3:4b model that we use
-
     ```shell
     export OLLAMA_HOST="0.0.0.0:11434"
     export OLLAMA_ORIGINS="*"
     ollama serve > ~/ollama.log 2>&1 &
     ollama pull gemma3:4b
     ```
-2a. If you run into 500 Server Errors in the UI, Ollama setup is likely the culprit. I got stuck on this forever. To see if Ollama is set up so that your rap-app container can reach it you can run through these setps. You can set Ollama to always start on boot (or via systemctl start ollama), by adding environment overrides to its service unit
+3. If you run into 500 Server Errors in the UI, Ollama setup is likely the culprit. I got stuck on this forever. To see if Ollama is set up so that your rap-app container can reach it you can run through these setps. You can set Ollama to always start on boot (or via systemctl start ollama), by adding environment overrides to its service unit
 
     ```shell
     sudo mkdir -p /etc/systemd/system/ollama.service.d
@@ -51,7 +50,7 @@ SSH into your Ubuntu server, we will need to install the following
     LISTEN 0      4096               *:11434            *:*
     ```
 
-3. Clone the repo with the source code needed for the workshop:
+4. Clone the repo with the source code needed for the workshop:
 
     ```shell
     git clone https://github.com/cwynveen/rag-workshop.git
@@ -60,7 +59,7 @@ SSH into your Ubuntu server, we will need to install the following
 ---
 
 ## Running through the workshop steps
-1. Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose. Note this will take a few minutes to download and pull in all the AI things (they're BIG).
+5. Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose. Note this will take a few minutes to download and pull in all the AI things (they're BIG).
 
     ```shell
     cd rag-app/upstream-rag
@@ -68,20 +67,20 @@ SSH into your Ubuntu server, we will need to install the following
     docker compose up -d
     ```
 
-2. Open your browser at http://EC2-PUBLIC-IP:3001
+6. Open your browser at http://EC2-PUBLIC-IP:3001
 Login (these can be dummy creds. admin@gmail.com). Now, let's ask a question!
 
     ```plaintext
     What is Iron Bank?
     ```
     
-3. Run grype against the image we just built
+7. Run grype against the image we just built
 
     ```shell
     grype <rag-app-upstream-rag>
     ```
 
-4. Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image.
+8. Now let's spin everything down and test out building and running the same rag-app code on a Chainguard base image.
 
     ```shell
     docker compose down
@@ -91,7 +90,7 @@ Login (these can be dummy creds. admin@gmail.com). Now, let's ask a question!
     docker compose up -d
     ```
 
-Open your browser at http://<EC2-PUBLIC-IP>:3001
+9. Open your browser at http://<EC2-PUBLIC-IP>:3001
 Login (these can be dummy creds. admin@gmail.com)
 Let's ask a question!
 - What is Iron Bank?
