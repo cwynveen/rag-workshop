@@ -42,7 +42,8 @@ SSH into your Ubuntu server, we will need to install the following
 
     ```shell
     cd rag-app/upstream-rag
-    docker compose up build -d
+    docker compose build
+    docker compose up -d
     ```
 
 2. Open your browser at http://EC2-PUBLIC-IP:3001
