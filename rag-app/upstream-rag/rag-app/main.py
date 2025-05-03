@@ -1,13 +1,22 @@
 # rag‑app/main.py
-import os, glob, time, logging
+import os
+import glob
+import time
+import logging
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
-from langchain.chains import RetrievalQA
 
-# **Use the official adapter instead of the community one**
+from langchain.chains import RetrievalQA, LLMChain
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
 from langchain_ollama.llms import OllamaLLM
 
 logging.basicConfig(level=logging.INFO)
@@ -25,22 +34,32 @@ vectordb   = Chroma(persist_directory=PERSIST_DIR, embedding_function=embeddings
 
 if vectordb._collection.count() == 0:
     logging.info("Index empty; ingesting…")
-    docs = TextLoader("../docker_best_practices.md").load()
-    for pdf in sorted(glob.glob("/resources/*.[pP][dD][fF]")):
+    # load your markdown guide mounted at container root
+    docs = TextLoader("/docker_best_practices.md").load()
+    # load any PDFs you put under ./resources on your Mac
+    for pdf in sorted(glob.glob("/resources/*.pdf")):
         docs += PyPDFLoader(pdf).load()
     vectordb.add_documents(docs)
     vectordb.persist()
     logging.info("Stored %d chunks", vectordb._collection.count())
 
-# — Build a RetrievalQA chain using OllamaLLM —
-llm = OllamaLLM(model=DEFAULT_MODEL, base_url=OLLAMA_URL, temperature=0.0)
-qa  = RetrievalQA.from_chain_type(
+# — Build the LLM, retriever & RAG chain —
+llm       = OllamaLLM(model=DEFAULT_MODEL, base_url=OLLAMA_URL, temperature=0.0)
+retriever = vectordb.as_retriever(search_kwargs={"k": 3})
+qa_chain  = RetrievalQA.from_chain_type(
     llm=llm,
     chain_type="stuff",
-    retriever=vectordb.as_retriever(search_kwargs={"k": 3}),
+    retriever=retriever,
 )
 
-# — OpenAI‐compatible shim (for Open Web UI) —
+# — Build a free‑form fallback chain with its own system prompt —
+fallback_system   = "You are a helpful assistant. Provide an informative answer to the user's question."
+sys_msg_fb        = SystemMessagePromptTemplate.from_template(fallback_system)
+human_msg_fb      = HumanMessagePromptTemplate.from_template("{question}")
+fallback_prompt   = ChatPromptTemplate.from_messages([sys_msg_fb, human_msg_fb])
+fallback_chain    = LLMChain(llm=llm, prompt=fallback_prompt)
+
+# — OpenAI‑compatible shim for Open Web UI —
 class ChatMessage(BaseModel):
     role: str
     content: str
@@ -74,7 +93,29 @@ async def openai_chat(req: ChatCompletionRequest):
     last = req.messages[-1]
     if last.role != "user":
         raise HTTPException(400, "Last message must be role=user")
-    answer = qa.run(last.content)
+
+    user_q = last.content
+
+    # 1) Retrieve relevant docs
+    docs = retriever.get_relevant_documents(user_q)
+    logging.info(f"🔍 Retrieved {len(docs)} docs for query: {user_q!r}")
+
+    # 2) Try RAG chain first
+    if docs:
+        rag_ans = qa_chain.run(user_q).strip()
+        logging.info(f"📄 RAG answer: {rag_ans!r}")
+        if rag_ans.lower().startswith("i don't know"):
+            logging.info("⚡ RAG said 'I don't know' → using fallback LLM")
+            out = fallback_chain.invoke({"question": user_q})
+            answer = out.get("text") if isinstance(out, dict) else str(out)
+        else:
+            answer = rag_ans
+    else:
+        # 3) No docs → fallback directly
+        logging.info("⚡ No docs found → using fallback LLM")
+        out = fallback_chain.invoke({"question": user_q})
+        answer = out.get("text") if isinstance(out, dict) else str(out)
+
     return ChatCompletionResponse(
         id=f"chatcmpl-{int(time.time())}",
         created=int(time.time()),
@@ -84,6 +125,5 @@ async def openai_chat(req: ChatCompletionRequest):
             message=ChatMessage(role="assistant", content=answer),
             finish_reason="stop"
         )],
-        usage={"prompt_tokens":0,"completion_tokens":0,"total_tokens":0},
+        usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
     )
-
