@@ -28,6 +28,28 @@ SSH into your Ubuntu server, we will need to install the following
     ollama serve > ~/ollama.log 2>&1 &
     ollama pull gemma3:4b
     ```
+2a. If you run into 500 Server Errors in the UI, Ollama setup is likely the culprit. I got stuck on this forever. To see if Ollama is set up so that your rap-app container can reach it you can run through these setps. You can set Ollama to always start on boot (or via systemctl start ollama), by adding environment overrides to its service unit
+
+    ```shell
+    sudo mkdir -p /etc/systemd/system/ollama.service.d
+    
+    cat <<EOF | sudo tee /etc/systemd/system/ollama.service.d/override.conf
+    [Service]
+    # bind to all interfaces, allow any origin
+    Environment="OLLAMA_HOST=0.0.0.0:11434"
+    Environment="OLLAMA_ORIGINS=*"
+    EOF
+
+    # reload and restart
+    sudo systemctl daemon-reload
+    sudo systemctl restart ollama
+
+    # validate it's set up properly
+    ss -tln | grep 11434
+
+    # should look like this
+    LISTEN 0      4096               *:11434            *:*
+    ```
 
 3. Clone the repo with the source code needed for the workshop:
 
