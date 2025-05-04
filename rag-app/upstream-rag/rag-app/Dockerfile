@@ -1,4 +1,4 @@
-# Use the Chainguard Python base image (with dev tools)
+# Use the Python base image
 FROM python:latest
 
 WORKDIR /app

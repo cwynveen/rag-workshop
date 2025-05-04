@@ -19,15 +19,15 @@ In each of these folders there are:
 
 ## Setting up your Ubuntu server to run through the workshop
 SSH into your Ubuntu server, we will need to install the following 
-1. docker, docker-compose, ollama, grype, and syft
-2. You will need to run the following commads to get ollama running and pull in the gemma3:4b model that we use
+1. [docker](https://docs.docker.com/engine/install/ubuntu/), [docker-compose](https://docs.docker.com/compose/install/linux/), [ollama](https://github.com/ollama/ollama/blob/main/docs/linux.md), [grype](https://github.com/anchore/grype?tab=readme-ov-file#installation), and [syft](https://github.com/anchore/syft?tab=readme-ov-file#installation)
+2. You will need to run the following commands to get ollama running and pull in the gemma3:4b model that we use
     ```shell
     export OLLAMA_HOST="0.0.0.0:11434"
     export OLLAMA_ORIGINS="*"
     ollama serve > ~/ollama.log 2>&1 &
     ollama pull gemma3:4b
     ```
-3. If you run into 500 Server Errors in the UI, Ollama setup is likely the culprit. I got stuck on this forever. To see if Ollama is set up so that your rap-app container can reach it you can run through these setps. You can set Ollama to always start on boot (or via systemctl start ollama), by adding environment overrides to its service unit
+3. If you run into 500 Server Errors in the UI, Ollama setup is likely the culprit. I got stuck on this forever. To see if Ollama is set up so that your rap-app container can reach it you can run through these steps. You can set Ollama to always start on boot (or via systemctl start ollama), by adding environment overrides to its service unit
 
     ```shell
     sudo mkdir -p /etc/systemd/system/ollama.service.d
@@ -62,9 +62,9 @@ SSH into your Ubuntu server, we will need to install the following
 5. Let start by moving into the upstream-rag folder and building our rag-app and running it with docker compose. Note this will take a few minutes to download and pull in all the AI things (they're BIG).
 
     ```shell
-    cd rag-app/upstream-rag
+    cd rag-workshop/rag-app/upstream-rag
     docker compose build
-    docker compose up -d
+    docker compose up -d --wait
     ```
 
 6. Open your browser at http://EC2-PUBLIC-IP:3001
@@ -84,26 +84,47 @@ Login (these can be dummy creds. admin@gmail.com). Now, let's ask a question!
 
     ```shell
     docker compose down
-    cd ..
-    cd cg-rag
+    cd ../cg-rag
     docker compose build --no-cache rag-app
-    docker compose up -d
+    docker compose up -d --wait
     ```
 
-9. Open your browser at http://<EC2-PUBLIC-IP>:3001
-Login (these can be dummy creds. admin@gmail.com)
-Let's ask a question!
-- What is Iron Bank?
-Run grype against the image we just built
+9. Open your browser at http://EC2-PUBLIC-IP:3001
+Login (these can be dummy creds. admin@gmail.com). Let's ask a question!
+
+    ```plaintext
+    What is Iron Bank?
+    ```
+
+10. Run grype against the image we just built
+    
     ```shell
     grype <cg-app-upstream-rag>
     ```
-Much fewer CVE's from just a single line of code change in our Dockerfile FROM statement
+
+Much fewer CVEs from just a single line of code change in our Dockerfile FROM statement!
 
 ---
 
 ## Let's inspect our Dockerfile for DoD Image Security best practices
+
 Let's drop our Dockerfile in the Open Web UI to see where we are violating best practices:
-.... needs improvement ...
 
-
+```plaintext
+Does this dockerfile follow DOD best practices?
+```
+    
+```dockerfile
+# Use the Python base image
+FROM python:latest
+WORKDIR /app
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+# Copy the app code
+COPY main.py .
+# Expose FastAPI port
+EXPOSE 8000
+# Launch via uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
